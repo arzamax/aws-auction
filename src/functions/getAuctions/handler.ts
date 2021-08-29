@@ -3,7 +3,6 @@ import AWS from 'aws-sdk';
 import createHttpError from 'http-errors';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import validator from '@middy/validator';
-import middyErrorHandler from '@middy/http-error-handler';
 
 import { middyfy } from '@libs/lambda';
 import schema from './schema';
