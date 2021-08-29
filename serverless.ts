@@ -4,6 +4,7 @@ import createAuction from '@functions/createAuction';
 import getAuctions from '@functions/getAuctions';
 import getAuction from '@functions/getAuction';
 import placeBid from '@functions/placeBid';
+import processAuctions from '@functions/processAuctions';
 
 const serverlessConfiguration: AWS = {
   service: 'sls-auction',
@@ -17,8 +18,11 @@ const serverlessConfiguration: AWS = {
     region: 'eu-west-1',
     iamRoleStatements: [{
       Effect: 'Allow',
-      Action: ['dynamodb:PutItem', 'dynamodb:Scan', 'dynamodb:GetItem', 'dynamodb:UpdateItem'],
-      Resource: '${self:custom.AuctionsTable.arn}',
+      Action: ['dynamodb:PutItem', 'dynamodb:Scan', 'dynamodb:GetItem', 'dynamodb:UpdateItem', 'dynamodb:Query'],
+      Resource: [
+        '${self:custom.AuctionsTable.arn}',
+        { 'Fn::Join': ['/', ['${self:custom.AuctionsTable.arn}', 'index', 'statusAndEndDate']] },
+      ],
     }],
     environment: {
       AUCTIONS_TABLE_NAME: '${self:custom.AuctionsTable.name}',
@@ -31,14 +35,42 @@ const serverlessConfiguration: AWS = {
         Properties: {
           TableName: 'AuctionsTable-${sls:stage}',
           BillingMode: 'PAY_PER_REQUEST',
-          AttributeDefinitions: [{
-            AttributeName: 'id',
-            AttributeType: 'S'
-          }],
+          AttributeDefinitions: [
+            {
+              AttributeName: 'id',
+              AttributeType: 'S'
+            },
+            {
+              AttributeName: 'status',
+              AttributeType: 'S'
+            },
+            {
+              AttributeName: 'endingAt',
+              AttributeType: 'S'
+            }
+          ],
           KeySchema: [{
             AttributeName: 'id',
             KeyType: 'HASH'
           }],
+          GlobalSecondaryIndexes: [
+            {
+              IndexName: 'statusAndEndDate',
+              KeySchema: [
+                {
+                  AttributeName: 'status',
+                  KeyType: 'HASH'
+                },
+                {
+                  AttributeName: 'endingAt',
+                  KeyType: 'RANGE'
+                }
+              ],
+              Projection: {
+                ProjectionType: 'ALL',
+              }
+            }
+          ]
         }
       }
     }
@@ -53,7 +85,7 @@ const serverlessConfiguration: AWS = {
       arn: { 'Fn::GetAtt': ['AuctionsTable', 'Arn'] },
     },
   },
-  functions: { createAuction, getAuctions, getAuction, placeBid },
+  functions: { createAuction, getAuctions, getAuction, placeBid, processAuctions },
 };
 
 module.exports = serverlessConfiguration;

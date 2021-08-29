@@ -20,6 +20,10 @@ const placeBid: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event
     throw new createHttpError.NotFound(`Auction with ID "${id} is not found"`);
   }
 
+  if (auction.status !== 'OPEN') {
+    throw new createHttpError.Forbidden('You cannot bid on closed auctions!');
+  }
+
   if (amount <= auction.highestBid.amount) {
     throw new createHttpError.BadRequest('Amount is too low');
   }
