@@ -8,7 +8,7 @@ import processAuctions from '@functions/processAuctions';
 
 const serverlessConfiguration: AWS = {
   service: 'sls-auction',
-  frameworkVersion: '2',
+  frameworkVersion: '2.55.0',
   plugins: ['serverless-webpack'],
   provider: {
     name: 'aws',
@@ -27,6 +27,7 @@ const serverlessConfiguration: AWS = {
     environment: {
       AUCTIONS_TABLE_NAME: '${self:custom.AuctionsTable.name}',
     },
+    lambdaHashingVersion: '20201221'
   },
   resources: {
     Resources: {
@@ -76,6 +77,7 @@ const serverlessConfiguration: AWS = {
     }
   },
   custom: {
+    authorizer: 'arn:aws:lambda:${self:provider.region}:${aws:accountId}:function:auth-service-${sls:stage}-auth',
     webpack: {
       webpackConfig: './webpack.config.js',
       includeModules: true,
@@ -86,6 +88,7 @@ const serverlessConfiguration: AWS = {
     },
   },
   functions: { createAuction, getAuctions, getAuction, placeBid, processAuctions },
+  configValidationMode: 'error',
 };
 
 module.exports = serverlessConfiguration;

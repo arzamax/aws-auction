@@ -9,7 +9,8 @@ export default {
       http: {
         method: 'get',
         path: '/auctions/{id}',
-      }
+        authorizer: '${self:custom.authorizer}',
+      },
     }
   ]
 }

@@ -15,6 +15,8 @@
     "@middy/http-event-normalizer": "^2.5.1",
     "@middy/http-json-body-parser": "^1.5.2",
     "@middy/validator": "^2.5.1",
+    "@red/theming": "^1.0.0",
+    "@red/ui": "^1.0.0",
     "aws-sdk": "^2.973.0",
     "http-errors": "^1.8.0",
     "source-map-support": "^0.5.19",

@@ -7,6 +7,7 @@ export default {
       http: {
         method: 'get',
         path: '/auctions',
+        authorizer: '${self:custom.authorizer}',
       }
     }
   ]
