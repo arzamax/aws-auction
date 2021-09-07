@@ -13,11 +13,20 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
 const placeBid: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   const { id } = event.pathParameters;
   const { amount } = event.body;
+  const { email } = event.requestContext.authorizer;
 
   const auction = await getAuctionById(id);
 
   if (!auction) {
     throw new createHttpError.NotFound(`Auction with ID "${id} is not found"`);
+  }
+
+  if (email === auction.seller) {
+    throw new createHttpError.Forbidden('You cannot bid on your own auction');
+  }
+
+  if (email === auction.highestBid.bidder) {
+    throw new createHttpError.Forbidden('You are already the highest bidder');
   }
 
   if (auction.status !== 'OPEN') {
@@ -32,9 +41,10 @@ const placeBid: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event
     const result = await dynamoDB.update({
       TableName: process.env.AUCTIONS_TABLE_NAME,
       Key: { id },
-      UpdateExpression: 'set highestBid.amount = :amount',
+      UpdateExpression: 'set highestBid.amount = :amount, highestBid.bidder = :bidder',
       ExpressionAttributeValues: {
         ':amount': amount,
+        ':bidder': email,
       },
       ReturnValues: 'ALL_NEW',
     }).promise();

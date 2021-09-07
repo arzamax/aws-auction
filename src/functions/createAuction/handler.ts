@@ -12,6 +12,7 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
 const createAuction: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   const { title } = event.body;
+  const { email } = event.requestContext.authorizer;
   const now = new Date();
   const endDate = new Date();
   endDate.setHours(now.getHours() + 1);
@@ -24,7 +25,8 @@ const createAuction: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
     endingAt: endDate.toISOString(),
     highestBid: {
       amount: 0,
-    }
+    },
+    seller: email
   };
 
   try {
